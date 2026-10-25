@@ -27,7 +27,7 @@ import java.time.Instant;
 public class AuthService {
 
 
-    private static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(30);
+    private static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(1);
     private static final Duration RESET_TOKEN_TTL = Duration.ofMinutes(15);
 
 

@@ -8,8 +8,11 @@ import java.util.Base64;
 @Component
 public class TokenGenerator {
 
-    private final SecureRandom secureRandom = new SecureRandom();
+    private final SecureRandom secureRandom;
 
+    public TokenGenerator(SecureRandom secureRandom) {
+        this.secureRandom = secureRandom;
+    }
     public String generate() {
         byte[] bytes = new byte[48];
         secureRandom.nextBytes(bytes);

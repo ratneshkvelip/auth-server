@@ -25,6 +25,8 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.security.SecureRandom;
+
 
 @Configuration
 public class SecurityConfig {
@@ -106,6 +108,11 @@ public class SecurityConfig {
     @Bean
     JwtEncoder jwtEncoder(RSAKey rsaKey) {
         return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(rsaKey)));
+    }
+
+    @Bean
+    public SecureRandom secureRandom() {
+        return new SecureRandom();
     }
 
     @Bean
