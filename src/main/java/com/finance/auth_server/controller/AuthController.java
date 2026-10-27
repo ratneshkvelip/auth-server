@@ -1,9 +1,6 @@
 package com.finance.auth_server.controller;
 
-import com.finance.auth_server.dto.LoginRequest;
-import com.finance.auth_server.dto.MessageResponse;
-import com.finance.auth_server.dto.RegisterRequest;
-import com.finance.auth_server.dto.TokenResponse;
+import com.finance.auth_server.dto.*;
 import com.finance.auth_server.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +31,14 @@ public class AuthController {
 
     @PostMapping("/login")
     public TokenResponse login(
-            @Valid @RequestBody LoginRequest request
-    ){
+            @Valid @RequestBody LoginRequest request){
         return authService.login(request);
+    }
+
+    @PostMapping("/refresh")
+    public TokenResponse refresh(
+            @Valid @RequestBody RefreshRequest request
+    ){
+        return authService.refresh(request);
     }
 }

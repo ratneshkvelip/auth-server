@@ -1,9 +1,6 @@
 package com.finance.auth_server.service;
 
-import com.finance.auth_server.dto.LoginRequest;
-import com.finance.auth_server.dto.MessageResponse;
-import com.finance.auth_server.dto.RegisterRequest;
-import com.finance.auth_server.dto.TokenResponse;
+import com.finance.auth_server.dto.*;
 import com.finance.auth_server.entity.RefreshToken;
 import com.finance.auth_server.entity.User;
 import com.finance.auth_server.enums.UserStatus;
@@ -82,6 +79,7 @@ public class AuthService {
     }
 
 
+    @Transactional
     public TokenResponse login(LoginRequest request) {
         User user = userRepository.findByEmailIgnoreCase(request.email())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
@@ -96,6 +94,31 @@ public class AuthService {
         return issueTokens(user);
 
     }
+
+    @Transactional
+    public TokenResponse refresh(RefreshRequest request) {
+        String hash = tokenHasher.hash(request.refreshToken());
+
+        RefreshToken refreshToken=refreshTokenRepository.findByTokenHash(hash)
+                .orElseThrow(()->new UnauthorizedException("Invalid refresh token"));
+
+        if(!refreshToken.isUsable()){
+            throw new UnauthorizedException("Refresh token is expired or revoked");
+        }
+
+        User user=userRepository.findById(refreshToken.getUserId())
+                .orElseThrow(()->new UnauthorizedException("User not found"));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new UnauthorizedException("User account is not active");
+        }
+
+        refreshToken.revoke();
+        refreshTokenRepository.save(refreshToken);
+
+        return issueTokens(user);
+    }
+
     private TokenResponse issueTokens(User user) {
         String accessToken = jwtTokenService.createAccessToken(user);
         String refreshToken = tokenGenerator.generate();
