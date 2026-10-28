@@ -119,6 +119,17 @@ public class AuthService {
         return issueTokens(user);
     }
 
+    @Transactional
+    public MessageResponse logout(String refreshToken) {
+        refreshTokenRepository.findByTokenHash(tokenHasher.hash(refreshToken))
+                .ifPresent(token -> {
+                    token.revoke();
+                    refreshTokenRepository.save(token);
+                });
+
+        return new MessageResponse("Logged out successfully");
+    }
+
     private TokenResponse issueTokens(User user) {
         String accessToken = jwtTokenService.createAccessToken(user);
         String refreshToken = tokenGenerator.generate();
