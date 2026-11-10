@@ -3,10 +3,12 @@ package com.finance.auth_server.service;
 import com.finance.auth_server.dto.*;
 import com.finance.auth_server.entity.RefreshToken;
 import com.finance.auth_server.entity.User;
+import com.finance.auth_server.entity.UserAccount;
 import com.finance.auth_server.enums.UserStatus;
 import com.finance.auth_server.exception.ConflictException;
 import com.finance.auth_server.exception.UnauthorizedException;
 import com.finance.auth_server.repository.RefreshTokenRepository;
+import com.finance.auth_server.repository.UserAccountRepository;
 import com.finance.auth_server.repository.UserRepository;
 import com.finance.auth_server.security.JwtTokenService;
 import com.finance.auth_server.security.TokenGenerator;
@@ -17,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -34,6 +37,7 @@ public class AuthService {
     private final JwtTokenService jwtTokenService;
     private final TokenGenerator tokenGenerator;
     private final TokenHasher tokenHasher;
+    private final UserAccountRepository userAccountRepository;
 
     @Autowired
     public AuthService(
@@ -42,7 +46,8 @@ public class AuthService {
             RefreshTokenRepository refreshTokenRepository,
             JwtTokenService jwtTokenService,
             TokenHasher tokenHasher,
-            TokenGenerator tokenGenerator
+            TokenGenerator tokenGenerator,
+            UserAccountRepository userAccountRepository
             ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -50,6 +55,7 @@ public class AuthService {
         this.tokenGenerator= tokenGenerator;
         this.tokenHasher=tokenHasher;
         this.passwordEncoder = passwordEncoder;
+        this.userAccountRepository = userAccountRepository;
     }
 
     @Transactional
@@ -67,13 +73,18 @@ public class AuthService {
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
-        userRepository.save(new User(
+        User user=new User(
                 request.username().trim(),
                 request.email().trim().toLowerCase(),
                 request.name().trim(),
                 request.mobileNumber(),
                 encodedPassword
-        ));
+        );
+        userRepository.save(user);
+
+        UserAccount userAccount = new UserAccount(user.getId(), BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO);
+
+        userAccountRepository.save(userAccount);
 
         return new MessageResponse("User registered successfully");
     }
